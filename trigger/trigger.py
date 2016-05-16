@@ -17,8 +17,6 @@ class Trigger(object):
         Constructor
         '''
         self.triggerPath = "/home/mirko/smarthome/raspberry-remote/send"
-        
+
     def trigger(self, light, cmd):
-        call([self.triggerPath, str(light)+" "+str(cmd)])
-    
-    
+        call([self.triggerPath, "10101", str(light), str(cmd)])

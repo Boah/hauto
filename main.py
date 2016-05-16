@@ -8,4 +8,4 @@ from trigger.trigger import Trigger
 
 if __name__ == '__main__':
     trigger = Trigger()
-    
+    trigger.trigger(4, 1)
