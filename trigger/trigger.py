@@ -5,6 +5,7 @@ Created on 16.05.2016
 '''
 
 from subprocess import call
+import logging
 
 class Trigger(object):
     '''
@@ -19,4 +20,10 @@ class Trigger(object):
         self.triggerPath = "/home/mirko/smarthome/raspberry-remote/send"
 
     def trigger(self, light, cmd):
-        call([self.triggerPath, "10101", str(light), str(cmd)])
+        try:
+            call([self.triggerPath, "10101", str(light), str(cmd)])
+        except:
+            logging.info("Tried to set light " + str(light) + " to " + str(cmd) + " failed")
+
+if __name__ == '__main__':
+    pass
