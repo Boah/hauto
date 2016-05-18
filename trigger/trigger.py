@@ -4,8 +4,12 @@ Created on 16.05.2016
 @author: mirko
 '''
 
-from subprocess import call
 import logging
+
+from subprocess import call
+from lightDef import lightDef
+from sensorClient.sensorClient import LightSensorClient
+from argumentParser.argumentParser import parseArgs
 
 class Trigger(object):
     '''
@@ -17,13 +21,45 @@ class Trigger(object):
         '''
         Constructor
         '''
-        self.triggerPath = "/home/mirko/smarthome/raspberry-remote/send"
+        self.__triggerPath = "/home/mirko/smarthome/raspberry-remote/send"
+        self.__checkSensor = None
+        self.__defs = lightDef()
+        self.__sensorClient = LightSensorClient()
 
-    def trigger(self, light, cmd):
+    def __trigger(self, light, cmd):
         try:
-            call([self.triggerPath, "10101", str(light), str(cmd)])
+            logging.info(call([self.__triggerPath, "10101", str(self.__defs.getLightID(light)), str(cmd)]))
         except:
             logging.info("Tried to set light " + str(light) + " to " + str(cmd) + " failed")
+            
+    def triggerLight(self, light, cmd):
+        if self.__checkSensor and cmd == 1:
+            if self.__sensorClient.getLightValueFromServer(self.__defs.getIP(self.__checkSensor)) < self.__defs.getLightThreshold(self.__checkSensor):
+                self.__trigger(light, cmd)
+        else:
+            self.__trigger(light, cmd)
+            
+    def activateSensorThreshold(self, sensorID):
+        if sensorID.lower() == 'kitchen' or sensorID.lower() == 'sz':
+            self.__checkSensor = sensorID
+        else:
+            logging.warn(str(sensorID) + " is not a valid Sensor ID")
+            
+    def deactivateSensorThreshold(self):
+        self.__checkSensor = None
+            
 
 if __name__ == '__main__':
-    pass
+    FORMAT = '%(asctime)s %(module)s:%(funcName)s:%(lineno)s %(message)s'
+    logging.basicConfig(format=FORMAT, level=logging.DEBUG)
+    args = parseArgs()
+    trigger = Trigger()
+    if args.sensor:
+        trigger.activateSensorThreshold(args.sensor)
+    else:
+        trigger.deactivateSensorThreshold()
+        
+    if (args.on):
+        trigger.triggerLight(args.lightID, 1)
+    elif (args.off):
+        trigger.triggerLight(args.lightID, 0)
