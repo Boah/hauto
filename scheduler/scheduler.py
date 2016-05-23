@@ -6,6 +6,8 @@ Created on 19.05.2016
 
 import schedule
 import logging
+import threading
+import time
 from trigger.trigger import Trigger
 
 class SchedulerData(object):
@@ -19,6 +21,7 @@ class SchedulerData(object):
         self.targetState = 'off'
         self.sensorQuery = None
         self.job        = None
+        self.active     = False # just for displaying in Web
     
 
 class Scheduler(object):
@@ -41,7 +44,7 @@ class Scheduler(object):
             self.__trigger.triggerLightWithoutSensor(light, self.__cmdToInt(targetState))
     
     def triggerOneTimeJob(self, light, targetState, sensor):
-        self.triggerJob(targetState)
+        self.triggerJob(light, targetState, sensor)
         return schedule.CancelJob
     
     def addTrigger(self, schedulerData):
@@ -78,21 +81,45 @@ class Scheduler(object):
         
     def getSchedulerData(self):
         return self.__schedulerList
+    
+    def run_continuously(self, interval=1):
+        """Continuously run, while executing pending jobs at each elapsed
+        time interval.
+        @return cease_continuous_run: threading.Event which can be set to
+        cease continuous run.
+        Please note that it is *intended behavior that run_continuously()
+        does not run missed jobs*. For example, if you've registered a job
+        that should run every minute and you set a continuous run interval
+        of one hour then your job won't be run 60 times at each interval but
+        only once.
+        """
+        cease_continuous_run = threading.Event()
+
+        class ScheduleThread(threading.Thread):
+            @classmethod
+            def run(cls):
+                while not cease_continuous_run.is_set():
+                    schedule.run_pending()
+                    time.sleep(interval)
+
+        continuous_thread = ScheduleThread()
+        continuous_thread.start()
+        return cease_continuous_run
         
 if __name__ == '__main__':
     FORMAT = '%(asctime)s %(module)s:%(funcName)s:%(lineno)s %(message)s'
     logging.basicConfig(format=FORMAT, level=logging.DEBUG)
     dat = SchedulerData()
-    dat.hour = 9
-    dat.minute = 30
+    dat.hour = 0
+    dat.minute = 00
     dat.once = True
     dat.lightID = 'SZ1'
     dat.targetState = 'on'
     dat.sensorQuery = 'sz'
     
     dat1 = SchedulerData()
-    dat1.hour = 9
-    dat1.minute = 45
+    dat1.hour = 0
+    dat1.minute = 01
     dat1.once = True
     dat1.lightID = 'SZ1'
     dat1.targetState = 'off'
@@ -101,6 +128,10 @@ if __name__ == '__main__':
     scheduler = Scheduler()
     scheduler.addTrigger(dat)
     scheduler.addTrigger(dat1)
+    
+    schedulerEventLoop = scheduler.run_continuously(60)
+    
+    time.sleep(300)
     
     schedList = scheduler.getSchedulerData()
     
