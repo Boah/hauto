@@ -14,7 +14,7 @@ class lightDef(object):
 
     def getLightID(self, lightString):
         for idTuple in self.__lightMap:
-            if idTuple[0] == lightString:
+            if idTuple[0].lower() == lightString.lower():
                 return idTuple[1]
 
     def getLightThreshold(self, sensorID):

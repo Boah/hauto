@@ -5,6 +5,7 @@ Created on 16.05.2016
 '''
 
 import logging
+import schedule
 
 from subprocess import call
 from lightDef import lightDef
@@ -17,12 +18,14 @@ class Trigger(object):
     '''
 
 
-    def __init__(self):
+    def __init__(self, sensorQuery):
         '''
         Constructor
         '''
         self.__triggerPath = "/home/mirko/smarthome/raspberry-remote/send"
         self.__checkSensor = None
+        if sensorQuery:
+            self.activateSensorThreshold(sensorQuery)
         self.__defs = lightDef()
         self.__sensorClient = LightSensorClient()
 
@@ -39,6 +42,18 @@ class Trigger(object):
         else:
             self.__trigger(light, cmd)
             
+    #Ignores internal Values
+    def triggerLightWithSensor(self, light, cmd, sensor):
+        if cmd == 1:
+            if self.__sensorClient.getLightValueFromServer(self.__defs.getIP(sensor)) < self.__defs.getLightThreshold(sensor):
+                self.__trigger(light, cmd)
+        else:
+            self.__trigger(light, cmd)
+            
+    #Ignores internal Values
+    def triggerLightWithoutSensor(self, light, cmd):
+            self.__trigger(light, cmd)
+    
     def activateSensorThreshold(self, sensorID):
         if sensorID.lower() == 'kitchen' or sensorID.lower() == 'sz':
             self.__checkSensor = sensorID
