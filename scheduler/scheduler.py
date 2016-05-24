@@ -9,20 +9,8 @@ import logging
 import threading
 import time
 from trigger.trigger import Trigger
-
-class SchedulerData(object):
-    
-    def __init__(self):
-        self.dayOfWeek  = []
-        self.hour       = None
-        self.minute     = None
-        self.once       = False
-        self.lightID    = None
-        self.targetState = 'off'
-        self.sensorQuery = None
-        self.job        = None
-        self.active     = False # just for displaying in Web
-    
+from schedulerDataContainer import SchedulerData
+from schedulerDataContainer import SchedulerDataContainer
 
 class Scheduler(object):
     '''
@@ -34,7 +22,7 @@ class Scheduler(object):
         '''
         Constructor
         '''
-        self.__schedulerList = []
+        self.__schedulerList = SchedulerDataContainer().schedulerDataList
         self.__trigger = Trigger(None)
         
     def triggerJob(self, light, targetState, sensor):
@@ -43,20 +31,39 @@ class Scheduler(object):
         else:
             self.__trigger.triggerLightWithoutSensor(light, self.__cmdToInt(targetState))
     
-    def triggerOneTimeJob(self, light, targetState, sensor):
-        self.triggerJob(light, targetState, sensor)
+    def triggerOneTimeJob(self, schedulerData):
+        self.triggerJob(schedulerData.lightID, schedulerData.targetState, schedulerData.sensorQuery)
+        schedulerData.active = False
         return schedule.CancelJob
     
     def addTrigger(self, schedulerData):
+        if schedulerData.active:
+            self.activateTrigger(schedulerData)
+        else:
+            # only add to Container (activate also adds it to container)
+            self.__schedulerList.append(schedulerData)
+
+        
+    def activateTrigger(self, schedulerData):
+        
         # Day of Week is ignored (Can't do it on the Webinterface anyway)
         if schedulerData.once:
-            job = schedule.every().day.at(str(schedulerData.hour)+":"+str(schedulerData.minute)).do(self.triggerOneTimeJob, schedulerData.lightID, schedulerData.targetState, schedulerData.sensorQuery)
+            job = schedule.every().day.at(str(schedulerData.hour)+":"+str(schedulerData.minute)).do(self.triggerOneTimeJob, schedulerData)
             schedulerData.job = job
             self.__schedulerList.append(schedulerData)
             return job
             
         if 'monday' in schedulerData.dayOfWeek:
             pass
+        
+    def activateTriggerByID(self, idx):
+        sd = self.__schedulerList[idx]
+        sd.active = True
+        self.activateTrigger(sd)
+        
+    def deactivateTrigger(self, scheduleData):
+        schedule.cancel_job(scheduleData.job)
+        scheduleData.active = False
         
     def deleteTriggerByJob(self, job):
         schedule.cancel_job(job)
@@ -110,28 +117,32 @@ if __name__ == '__main__':
     FORMAT = '%(asctime)s %(module)s:%(funcName)s:%(lineno)s %(message)s'
     logging.basicConfig(format=FORMAT, level=logging.DEBUG)
     dat = SchedulerData()
-    dat.hour = 0
-    dat.minute = 00
+    dat.hour = 23
+    dat.minute = 47
     dat.once = True
     dat.lightID = 'SZ1'
     dat.targetState = 'on'
     dat.sensorQuery = 'sz'
+    dat.active = True
     
     dat1 = SchedulerData()
-    dat1.hour = 0
-    dat1.minute = 01
+    dat1.hour = 23
+    dat1.minute = 48
     dat1.once = True
     dat1.lightID = 'SZ1'
     dat1.targetState = 'off'
     dat1.sensorQuery = 'sz'
+    dat1.active = True
 
     scheduler = Scheduler()
     scheduler.addTrigger(dat)
     scheduler.addTrigger(dat1)
     
-    schedulerEventLoop = scheduler.run_continuously(60)
+    schedulerContainer = SchedulerDataContainer()
     
-    time.sleep(300)
+    schedulerEventLoop = scheduler.run_continuously(30)
+    
+    time.sleep(180)
     
     schedList = scheduler.getSchedulerData()
     
