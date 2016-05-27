@@ -18,6 +18,21 @@ class SchedulerData(object):
         self.job        = None
         self.active     = False # just for displaying in Web
         
+    def __str__(self):
+        msg = ""
+        msg += "DayOfWeek="
+        for day in self.dayOfWeek:
+            msg+=str(day)+" "
+        msg+=", Hour=" + str(self.hour)
+        msg+=", Minute=" + str(self.minute)
+        msg+=", Once=" + str(self.once)
+        msg+=", LightID=" + str(self.lightID)
+        msg+=", TargetState=" + str(self.targetState)
+        msg+=", SensorQuery=" + str(self.sensorQuery)
+        msg+=", Active=" + str(self.active)
+        
+        return msg
+        
 class SchedulerDataContainer(object):
     '''
     I am Borg
@@ -28,4 +43,10 @@ class SchedulerDataContainer(object):
     
     def __init__(self):
         self.__dict__ = self.__shared_state
+        
+    def __str__(self):
+        msg = ""
+        for entry in self.schedulerDataList:
+            msg += str(entry) + '\n'
+        return msg
     

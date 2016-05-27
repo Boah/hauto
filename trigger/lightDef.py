@@ -1,3 +1,9 @@
+def cmdToInt(cmd):
+    if cmd.lower() == 'on' or cmd == 1:
+        return 1
+    if cmd.lower() == 'off' or cmd == 0:
+        return 0
+
 class lightDef(object):
     def __init__(self):
         self.__WZ1 = ("WZ1", 1)

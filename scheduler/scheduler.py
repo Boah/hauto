@@ -11,6 +11,7 @@ import time
 from trigger.trigger import Trigger
 from schedulerDataContainer import SchedulerData
 from schedulerDataContainer import SchedulerDataContainer
+from trigger.lightDef import cmdToInt
 
 class Scheduler(object):
     '''
@@ -27,9 +28,9 @@ class Scheduler(object):
         
     def triggerJob(self, light, targetState, sensor):
         if not sensor:
-            self.__trigger.triggerLightWithSensor(light, self.__cmdToInt(targetState), sensor)
+            self.__trigger.triggerLightWithSensor(light, cmdToInt(targetState), sensor)
         else:
-            self.__trigger.triggerLightWithoutSensor(light, self.__cmdToInt(targetState))
+            self.__trigger.triggerLightWithoutSensor(light, cmdToInt(targetState))
     
     def triggerOneTimeJob(self, schedulerData):
         self.triggerJob(schedulerData.lightID, schedulerData.targetState, schedulerData.sensorQuery)
@@ -79,12 +80,6 @@ class Scheduler(object):
         trigger = Trigger(schedulerData.sensorQuery)
         self.__triggerList.append((trigger, schedulerData))
         return trigger
-    
-    def __cmdToInt(self, cmd):
-        if cmd.lower() == 'on':
-            return 1
-        if cmd.lower() == 'off':
-            return 0
         
     def getSchedulerData(self):
         return self.__schedulerList
