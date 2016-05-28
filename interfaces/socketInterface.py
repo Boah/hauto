@@ -8,7 +8,9 @@ import socket
 import sys
 import logging
 from lightStatusStore.lightStatusStore import LightStatusStore
+from scheduler.schedulerDataContainer import SchedulerData
 from scheduler.schedulerDataContainer import SchedulerDataContainer
+from scheduler.scheduler import Scheduler
 from trigger.trigger import Trigger
 
 class LightCommand(object):
@@ -21,9 +23,11 @@ class SocketInterface(object):
     def __init__(self):
         self.PORT = 45455
         self.__ackString = 'ACK'
+        self.__nackString = 'ERROR'
         self.statusStore = LightStatusStore()
         self.schedulerContainer = SchedulerDataContainer()
         self.trigger = Trigger()
+        self.scheduler = Scheduler()
 
     def startLightServer(self):
         #create an INET, STREAMing socket
@@ -61,11 +65,81 @@ class SocketInterface(object):
             else:
                 self.trigger.triggerLightWithoutSensor(lightCmd.light, lightCmd.cmd)
             return self.__ackString
+        if (inputData.lower().startswith("addse") or inputData.lower().startswith("addscheduleentry")):
+            return self.__parseAddScheduleEntryCommand(inputData)
+        if (inputData.lower().startswith("changese") or inputData.lower().startswith("changescheduleentry")):
+            return self.__parseChangeScheduleEntryCommand(inputData)
+        if (inputData.lower().startswith("remove") or inputData.lower().startswith("delete")):
+            cmd = inputData.split(" ")
+            try:
+                entry = int(cmd[1])
+            except:
+                return self.__nackString
+            if self.scheduler.deleteTriggerByID(entry):
+                return self.__ackString
+            else:
+                return self.__nackString
         if (inputData.lower() == "exit"):
             logging.info("Got Exit Signal via Socket")
             return "exit"
         
         return None
+    
+    def __parseAddScheduleEntryCommand(self, inputData):
+        schedulerData = SchedulerData()
+        cmdList = inputData.split()
+        for cmd in cmdList:
+            if not cmd.lower().startswith("adds"):
+                if "=" in cmd:
+                    cmdPart = cmd.split("=")
+                    if cmdPart[0].lower() == 'wz1' or cmdPart[0].lower() == 'wz2' or cmdPart[0].lower() == 'sz1':
+                        schedulerData.lightID = cmdPart[0]
+                        schedulerData.targetState = cmdPart[1]
+                    if cmdPart[0].lower() == 'hour':
+                        schedulerData.hour = cmdPart[1]
+                    if cmdPart[0].lower() == 'minute':
+                        schedulerData.minute = cmdPart[1]
+                    if cmdPart[0].lower() == 'active':
+                        schedulerData.active = cmdPart[1]
+                    if cmdPart[0].lower() == 'sensor':
+                        schedulerData.sensorQuery = cmdPart[1]
+                    if cmdPart[0].lower() == 'dayofweek' or cmdPart[0].lower() == 'dow':
+                        schedulerData.dayOfWeek = cmdPart[1].split('/')
+        if len(schedulerData.dayOfWeek) == 0:
+            schedulerData.once = True
+        if self.scheduler.addTrigger(schedulerData):
+            return self.__ackString
+        else:
+            return self.__nackString
+    
+    def __parseChangeScheduleEntryCommand(self, inputData):
+        schedulerData = SchedulerData()
+        cmdList = inputData.split()
+        for cmd in cmdList:
+            if not cmd.lower().startswith("changes"):
+                if "=" in cmd:
+                    cmdPart = cmd.split("=")
+                    if cmdPart[0].lower() == 'wz1' or cmdPart[0].lower() == 'wz2' or cmdPart[0].lower() == 'sz1':
+                        schedulerData.lightID = cmdPart[0]
+                        schedulerData.targetState = cmdPart[1]
+                    if cmdPart[0].lower() == 'hour':
+                        schedulerData.hour = cmdPart[1]
+                    if cmdPart[0].lower() == 'minute':
+                        schedulerData.minute = cmdPart[1]
+                    if cmdPart[0].lower() == 'active':
+                        schedulerData.active = cmdPart[1]
+                    if cmdPart[0].lower() == 'sensor':
+                        schedulerData.sensorQuery = cmdPart[1]
+                    if cmdPart[0].lower() == 'dayofweek' or cmdPart[0].lower() == 'dow':
+                        schedulerData.dayOfWeek = cmdPart[1].split('/')
+                    if cmdPart[0].lower() == 'entry':
+                        entry = int(cmdPart[1])
+        if len(schedulerData.dayOfWeek) == 0:
+            schedulerData.once = True
+        if(self.scheduler.replaceTriggerByID(entry, schedulerData)):
+            return self.__ackString
+        else:
+            return self.__nackString
     
     def __parseLightCommand(self, cmd):
         lightCmd = LightCommand()

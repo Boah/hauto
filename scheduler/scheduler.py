@@ -38,19 +38,35 @@ class Scheduler(object):
         return schedule.CancelJob
     
     def addTrigger(self, schedulerData):
-        if schedulerData.active:
-            self.activateTrigger(schedulerData)
+        if self.__checkSchedulerData(schedulerData):
+            if schedulerData.active:
+                self.activateTrigger(schedulerData)
+            else:
+                # only add to Container (activate also adds it to container)
+                self.__schedulerList.append(schedulerData)
+            return True
         else:
-            # only add to Container (activate also adds it to container)
-            self.__schedulerList.append(schedulerData)
+            return False
 
-        
+    def __checkSchedulerData(self, schedulerData):
+        if schedulerData is None:
+            return False
+        if (schedulerData.hour is None or schedulerData.minute is None
+            or schedulerData.lightID is None):
+            return False
+        if len(schedulerData.dayOfWeek) == 0:
+            schedulerData.once = True
+        elif schedulerData.once == True:
+            logging.warn("Days and once are specified")
+        return True
+
     def activateTrigger(self, schedulerData):
         
         # Day of Week is ignored (Can't do it on the Webinterface anyway)
         if schedulerData.once:
             job = schedule.every().day.at(str(schedulerData.hour)+":"+str(schedulerData.minute)).do(self.triggerOneTimeJob, schedulerData)
             schedulerData.job = job
+            schedulerData.active = True
             self.__schedulerList.append(schedulerData)
             return job
             
@@ -73,8 +89,19 @@ class Scheduler(object):
                 self.__schedulerList.remove(schedulerData)
         
     def deleteTriggerByID(self, index):
+        if index > len(self.__schedulerList)-1:
+            return False
         schedule.cancel_job(self.__schedulerList[index].job)
         del self.__schedulerList[index]
+        return True
+        
+    def replaceTriggerByID(self, index, schedulerData):
+        if index > len(self.__schedulerList)-1:
+            return False            
+        schedule.cancel_job(self.__schedulerList[index].job)
+        self.__schedulerList[index] = schedulerData
+        self.activateTrigger(schedulerData)
+        return True
         
     def createTrigger(self, schedulerData):
         trigger = Trigger(schedulerData.sensorQuery)

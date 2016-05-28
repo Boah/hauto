@@ -5,6 +5,7 @@ Created on 17.05.2016
 '''
 
 import socket
+import logging
 
 
 class LightSensorClient(object):
@@ -23,7 +24,9 @@ class LightSensorClient(object):
         try:
             s.connect((host, port))
         except Exception as ex:
-            raise ex
+            logging.error("Error occured: " + str(ex))
+            s.close
+            return 0
         data = s.recv(1024)
         s.close()
         return float(data.decode("utf-8"))

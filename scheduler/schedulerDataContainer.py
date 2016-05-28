@@ -19,17 +19,15 @@ class SchedulerData(object):
         self.active     = False # just for displaying in Web
         
     def __str__(self):
-        msg = ""
-        msg += "DayOfWeek="
+        msg=str(self.lightID)+"=" + str(self.targetState)
+        msg += ", DayOfWeek="
         for day in self.dayOfWeek:
-            msg+=str(day)+" "
+            msg+=str(day)+"/"
         msg+=", Hour=" + str(self.hour)
         msg+=", Minute=" + str(self.minute)
         msg+=", Once=" + str(self.once)
-        msg+=", LightID=" + str(self.lightID)
-        msg+=", TargetState=" + str(self.targetState)
-        msg+=", SensorQuery=" + str(self.sensorQuery)
-        msg+=", Active=" + str(self.active)
+        msg+=", sensor=" + str(self.sensorQuery)
+        msg+=", active=" + str(self.active)
         
         return msg
         
