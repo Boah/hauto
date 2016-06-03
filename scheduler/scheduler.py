@@ -9,8 +9,8 @@ import logging
 import threading
 import time
 from trigger.trigger import Trigger
-from schedulerDataContainer import SchedulerData
-from schedulerDataContainer import SchedulerDataContainer
+from .schedulerDataContainer import SchedulerData
+from .schedulerDataContainer import SchedulerDataContainer
 from trigger.lightDef import cmdToInt
 
 class Scheduler(object):
@@ -41,8 +41,8 @@ class Scheduler(object):
         if self.__checkSchedulerData(schedulerData):
             if schedulerData.active:
                 self.activateTrigger(schedulerData)
+                self.__schedulerList.append(schedulerData)
             else:
-                # only add to Container (activate also adds it to container)
                 self.__schedulerList.append(schedulerData)
             return True
         else:
@@ -67,7 +67,6 @@ class Scheduler(object):
             job = schedule.every().day.at(str(schedulerData.hour)+":"+str(schedulerData.minute)).do(self.triggerOneTimeJob, schedulerData)
             schedulerData.job = job
             schedulerData.active = True
-            self.__schedulerList.append(schedulerData)
             return job
             
         if 'monday' in schedulerData.dayOfWeek:

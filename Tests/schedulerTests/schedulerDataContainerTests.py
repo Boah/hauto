@@ -28,7 +28,7 @@ class Test(unittest.TestCase):
         data.targetState = 'on'
         data.sensorQuery="kitchen"
         data.active = True
-        self.assertEqual(str(data), "DayOfWeek=, Hour=9, Minute=30, Once=False, LightID=SZ1, TargetState=on, SensorQuery=kitchen, Active=True")
+        self.assertEqual(str(data), "SZ1=on, DayOfWeek=, Hour=9, Minute=30, Once=False, sensor=kitchen, active=True")
         
         data.dayOfWeek.append('Mo')
         data.dayOfWeek.append('Tu')
@@ -37,10 +37,10 @@ class Test(unittest.TestCase):
         data.dayOfWeek.append('Fr')
         data.dayOfWeek.append('Sa')
         data.dayOfWeek.append('Su')
-        self.assertEqual(str(data), "DayOfWeek=Mo Tu We Th Fr Sa Su , Hour=9, Minute=30, Once=False, LightID=SZ1, TargetState=on, SensorQuery=kitchen, Active=True")
+        self.assertEqual(str(data), "SZ1=on, DayOfWeek=Mo/Tu/We/Th/Fr/Sa/Su/, Hour=9, Minute=30, Once=False, sensor=kitchen, active=True")
         
         data.sensorQuery=None
-        self.assertEqual(str(data), "DayOfWeek=Mo Tu We Th Fr Sa Su , Hour=9, Minute=30, Once=False, LightID=SZ1, TargetState=on, SensorQuery=None, Active=True")
+        self.assertEqual(str(data), "SZ1=on, DayOfWeek=Mo/Tu/We/Th/Fr/Sa/Su/, Hour=9, Minute=30, Once=False, sensor=None, active=True")
         
     def testSchedulerDataContainer(self):
         container = SchedulerDataContainer()
@@ -53,7 +53,7 @@ class Test(unittest.TestCase):
         data.sensorQuery=None
         data.active = True
         container.schedulerDataList.append(data)
-        self.assertEqual(str(container), "DayOfWeek=, Hour=9, Minute=30, Once=False, LightID=SZ1, TargetState=on, SensorQuery=None, Active=True\n")
+        self.assertEqual(str(container), "SZ1=on, DayOfWeek=, Hour=9, Minute=30, Once=False, sensor=None, active=True\n")
         
         data1 = SchedulerData()
         data1.hour=9
@@ -73,7 +73,7 @@ class Test(unittest.TestCase):
         container.schedulerDataList.append(data1)
         
         self.assertEqual(str(container), 
-                         "DayOfWeek=, Hour=9, Minute=30, Once=False, LightID=SZ1, TargetState=on, SensorQuery=None, Active=True\nDayOfWeek=Mo Tu We Th Fr Sa Su , Hour=9, Minute=30, Once=False, LightID=SZ1, TargetState=on, SensorQuery=kitchen, Active=True\n"
+                         "SZ1=on, DayOfWeek=, Hour=9, Minute=30, Once=False, sensor=None, active=True\nSZ1=on, DayOfWeek=Mo/Tu/We/Th/Fr/Sa/Su/, Hour=9, Minute=30, Once=False, sensor=kitchen, active=True\n"
                          )
         
 

@@ -46,5 +46,7 @@ class SchedulerDataContainer(object):
         msg = ""
         for entry in self.schedulerDataList:
             msg += str(entry) + '\n'
+        if msg == "":
+            msg = 'empty'
         return msg
     

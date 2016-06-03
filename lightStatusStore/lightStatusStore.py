@@ -30,7 +30,7 @@ class LightStatusStore(object):
         for idx, tuple_ in enumerate(retVal):
             retStr += str(tuple_[0]) + "=" + str(tuple_[1])
             if(idx != len(retVal)-1):
-                retStr += ", "
+                retStr += " "
         return retStr
     
     def setStatus(self, light, status):

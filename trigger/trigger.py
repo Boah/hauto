@@ -8,10 +8,11 @@ import logging
 import schedule
 
 from subprocess import call
-from lightDef import lightDef
+from .lightDef import lightDef
 from sensorClient.sensorClient import LightSensorClient
 from argumentParser.argumentParser import parseArgs
-from lightDef import cmdToInt
+from .lightDef import cmdToInt
+from lightStatusStore.lightStatusStore import LightStatusStore
 
 class Trigger(object):
     '''
@@ -29,12 +30,16 @@ class Trigger(object):
             self.activateSensorThreshold(sensorQuery)
         self.__defs = lightDef()
         self.__sensorClient = LightSensorClient()
+        self.__lightStatusStore = LightStatusStore()
 
     def __trigger(self, light, cmd):
         try:
             logging.info(call([self.__triggerPath, "10101", str(self.__defs.getLightID(light)), str(cmdToInt(cmd))]))
+            self.__lightStatusStore.setStatus(light, cmd)
+            return True
         except:
             logging.info("Tried to set light " + str(light) + " to " + str(cmd) + " failed")
+            return False
             
     def triggerLight(self, light, cmd):
         if self.__checkSensor and cmd == 1:
@@ -50,13 +55,13 @@ class Trigger(object):
             sensorThreshold = self.__defs.getLightThreshold(sensor)
             logging.info("comparing Sensor Value: " + str(sensorValue) + " with Sensor Threshold: " + str(sensorThreshold))
             if sensorValue < sensorThreshold:
-                self.__trigger(light, cmd)
+                return self.__trigger(light, cmd)
         else:
-            self.__trigger(light, cmd)
+            return self.__trigger(light, cmd)
             
     #Ignores internal Values
     def triggerLightWithoutSensor(self, light, cmd):
-            self.__trigger(light, cmd)
+            return self.__trigger(light, cmd)
     
     def activateSensorThreshold(self, sensorID):
         if sensorID.lower() == 'kitchen' or sensorID.lower() == 'sz':

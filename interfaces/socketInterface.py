@@ -50,7 +50,7 @@ class SocketInterface(object):
                 sys.exit(0)
             
     def parseInput(self, input_):
-        inputData = input_.decode("utf-8")
+        inputData = input_
         if (inputData.lower() == "getstat" or inputData.lower() == "getstatus"):
             outdata = self.statusStore.getStatusAsString()
             return outdata
@@ -61,14 +61,22 @@ class SocketInterface(object):
             #TriggerLightCommand: triggerLight SZ1=on sensor=kitchen
             lightCmd = self.__parseLightCommand(inputData)
             if lightCmd.sensor:
-                self.trigger.triggerLightWithSensor(lightCmd.light, lightCmd.cmd, lightCmd.sensor)
+                if (self.trigger.triggerLightWithSensor(lightCmd.light, lightCmd.cmd, lightCmd.sensor)):
+                    return self.__ackString
+                else:
+                    return self.__nackString
             else:
-                self.trigger.triggerLightWithoutSensor(lightCmd.light, lightCmd.cmd)
-            return self.__ackString
+                if(self.trigger.triggerLightWithoutSensor(lightCmd.light, lightCmd.cmd)):
+                    return self.__ackString
+                else:
+                    return self.__nackString
+            return self.__nackString
         if (inputData.lower().startswith("addse") or inputData.lower().startswith("addscheduleentry")):
             return self.__parseAddScheduleEntryCommand(inputData)
         if (inputData.lower().startswith("changese") or inputData.lower().startswith("changescheduleentry")):
             return self.__parseChangeScheduleEntryCommand(inputData)
+        if (inputData.lower().startswith("deletese") or inputData.lower().startswith("deletescheduleentry")):
+            return self.__parseDeleteScheduleEntryCommand(inputData)
         if (inputData.lower().startswith("remove") or inputData.lower().startswith("delete")):
             cmd = inputData.split(" ")
             try:
@@ -113,6 +121,7 @@ class SocketInterface(object):
             return self.__nackString
     
     def __parseChangeScheduleEntryCommand(self, inputData):
+        # changeScheduleEntry: entry=1 WZ1=off Hour=8 Minute=15 active=True sensor=sz
         schedulerData = SchedulerData()
         cmdList = inputData.split()
         for cmd in cmdList:
@@ -137,6 +146,20 @@ class SocketInterface(object):
         if len(schedulerData.dayOfWeek) == 0:
             schedulerData.once = True
         if(self.scheduler.replaceTriggerByID(entry, schedulerData)):
+            return self.__ackString
+        else:
+            return self.__nackString
+        
+    def __parseDeleteScheduleEntryCommand(self, inputData):
+        # deleteScheduleEntry: entry=1
+        cmdList = inputData.split()
+        for cmd in cmdList:
+            if not cmd.lower().startswith("changes"):
+                if "=" in cmd:
+                    cmdPart = cmd.split("=")
+                    if cmdPart[0].lower() == 'entry':
+                        entry = int(cmdPart[1])
+        if(self.scheduler.deleteTriggerByID(entry)):
             return self.__ackString
         else:
             return self.__nackString

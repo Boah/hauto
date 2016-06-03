@@ -25,13 +25,13 @@ class Test(unittest.TestCase):
     def testGetStatusAsString(self):
         statusStore = LightStatusStore()
         
-        self.assertEqual(statusStore.getStatusAsString(), 'WZ1=off, WZ2=off, SZ1=off')
+        self.assertEqual(statusStore.getStatusAsString(), 'WZ1=off WZ2=off SZ1=off')
         statusStore.setStatus("SZ1", 'on')
-        self.assertEqual(statusStore.getStatusAsString(), 'WZ1=off, WZ2=off, SZ1=on')
+        self.assertEqual(statusStore.getStatusAsString(), 'WZ1=off WZ2=off SZ1=on')
         statusStore.setStatus("WZ1", 'on')
-        self.assertEqual(statusStore.getStatusAsString(), 'WZ1=on, WZ2=off, SZ1=on')
+        self.assertEqual(statusStore.getStatusAsString(), 'WZ1=on WZ2=off SZ1=on')
         statusStore.setStatus("WZ2", 'on')
-        self.assertEqual(statusStore.getStatusAsString(), 'WZ1=on, WZ2=on, SZ1=on')
+        self.assertEqual(statusStore.getStatusAsString(), 'WZ1=on WZ2=on SZ1=on')
 
     def testGetStatus(self):
         statusStore = LightStatusStore()
