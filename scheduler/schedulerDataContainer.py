@@ -15,7 +15,7 @@ class SchedulerData(object):
         self.lightID    = None
         self.targetState = 'off'
         self.sensorQuery = None
-        self.job        = None
+        self.jobs        = []
         self.active     = False # just for displaying in Web
         
     def __str__(self):

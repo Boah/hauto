@@ -9,7 +9,7 @@ import schedule
 
 from subprocess import call
 from .lightDef import lightDef
-from sensorClient.sensorClient import LightSensorClient
+from sensorClient import LightSensorClient
 from argumentParser.argumentParser import parseArgs
 from .lightDef import cmdToInt
 from lightStatusStore.lightStatusStore import LightStatusStore

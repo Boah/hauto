@@ -8,6 +8,7 @@ import argparse
 def parseArgs():
     parser = argparse.ArgumentParser(description='Control lights')
     parser.add_argument('lightID')
+    parser.add_argument('-d', '--daemon', action='store_true')
     parser.add_argument('-1', '--on', action='store_true')
     parser.add_argument('-0', '--off', action='store_true')
     parser.add_argument('-s', '--sensor', action='store')
