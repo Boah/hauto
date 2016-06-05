@@ -7,6 +7,7 @@ Created on 17.05.2016
 import socket
 import sys
 import logging
+import time
 from lightStatusStore.lightStatusStore import LightStatusStore
 from scheduler.schedulerDataContainer import SchedulerData
 from scheduler.schedulerDataContainer import SchedulerDataContainer
@@ -35,7 +36,22 @@ class SocketInterface(object):
             socket.AF_INET, socket.SOCK_STREAM)
         #bind the socket to a public host,
         # and a well-known port
-        serversocket.bind(('localhost', self.PORT))
+        #serversocket.bind(('localhost', self.PORT))
+        try:
+            serversocket.bind((socket.gethostname(), self.PORT))
+        except:
+            logging.warn("Could not bind at Port: " + str(self.PORT) + ". Waiting 60s...")
+            time.sleep(60)
+            try:
+                serversocket.bind((socket.gethostname(), self.PORT))
+            except:
+                logging.warn("Could not bind at Port: " + str(self.PORT) + ". Waiting 60s...")
+                time.sleep(60)
+                try:
+                    serversocket.bind((socket.gethostname(), self.PORT))
+                except:
+                    logging.error("Could not bind at Port: " + str(self.PORT))
+        logging.info("Binding at Port " + str(self.PORT) + " succeeded.")
         #become a server socket
         serversocket.listen(5)
         
@@ -44,13 +60,13 @@ class SocketInterface(object):
             (clientsocket, address) = serversocket.accept()
             input_ = clientsocket.recv(1024)
             output = self.parseInput(input_)
-            clientsocket.sendall(output)
+            clientsocket.sendall(output.encode())
             clientsocket.close()
             if output == 'exit':
                 sys.exit(0)
             
     def parseInput(self, input_):
-        inputData = input_
+        inputData = input_.decode('utf-8')
         if (inputData.lower() == "getstat" or inputData.lower() == "getstatus"):
             outdata = self.statusStore.getStatusAsString()
             return outdata
