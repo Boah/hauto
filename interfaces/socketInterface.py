@@ -51,6 +51,7 @@ class SocketInterface(object):
                     serversocket.bind((socket.gethostname(), self.PORT))
                 except:
                     logging.error("Could not bind at Port: " + str(self.PORT))
+                    sys.exit(1)
         logging.info("Binding at Port " + str(self.PORT) + " succeeded.")
         #become a server socket
         serversocket.listen(5)
@@ -60,13 +61,19 @@ class SocketInterface(object):
             (clientsocket, address) = serversocket.accept()
             input_ = clientsocket.recv(1024)
             output = self.parseInput(input_)
-            clientsocket.sendall(output.encode())
+            if output:
+                clientsocket.sendall(output.encode())
+            else:
+                clientsocket.sendall(self.__nackString.encode())
             clientsocket.close()
             if output == 'exit':
                 sys.exit(0)
             
     def parseInput(self, input_):
-        inputData = input_.decode('utf-8')
+        if not isinstance(input_, str):
+            inputData = input_.decode('utf-8')
+        else:
+            inputData = input_
         if (inputData.lower() == "getstat" or inputData.lower() == "getstatus"):
             outdata = self.statusStore.getStatusAsString()
             return outdata
@@ -107,7 +114,7 @@ class SocketInterface(object):
             logging.info("Got Exit Signal via Socket")
             return "exit"
         
-        return None
+        return self.__nackString
     
     def __parseAddScheduleEntryCommand(self, inputData):
         schedulerData = SchedulerData()
