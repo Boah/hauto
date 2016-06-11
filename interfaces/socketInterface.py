@@ -40,12 +40,12 @@ class SocketInterface(object):
         try:
             serversocket.bind((socket.gethostname(), self.PORT))
         except:
-            logging.warn("Could not bind at Port: " + str(self.PORT) + ". Waiting 60s...")
+            logging.warning("Could not bind at Port: " + str(self.PORT) + ". Waiting 60s...")
             time.sleep(60)
             try:
                 serversocket.bind((socket.gethostname(), self.PORT))
             except:
-                logging.warn("Could not bind at Port: " + str(self.PORT) + ". Waiting 60s...")
+                logging.warning("Could not bind at Port: " + str(self.PORT) + ". Waiting 60s...")
                 time.sleep(60)
                 try:
                     serversocket.bind((socket.gethostname(), self.PORT))
@@ -113,29 +113,7 @@ class SocketInterface(object):
     
     def __parseAddScheduleEntryCommand(self, inputData):
         schedulerData = SchedulerData()
-        cmdList = inputData.split()
-        for cmd in cmdList:
-            if not cmd.lower().startswith("adds"):
-                if "=" in cmd:
-                    cmdPart = cmd.split("=")
-                    if cmdPart[0].lower() == 'wz1' or cmdPart[0].lower() == 'wz2' or cmdPart[0].lower() == 'sz1':
-                        schedulerData.lightID = cmdPart[0]
-                        schedulerData.targetState = cmdPart[1]
-                    if cmdPart[0].lower() == 'hour':
-                        schedulerData.hour = cmdPart[1]
-                    if cmdPart[0].lower() == 'minute':
-                        schedulerData.minute = cmdPart[1]
-                    if cmdPart[0].lower() == 'active':
-                        if cmdPart[1].lower() == 'true':
-                            schedulerData.active = True
-                        else:
-                            schedulerData.active = False
-                    if cmdPart[0].lower() == 'sensor':
-                        schedulerData.sensorQuery = cmdPart[1]
-                    if cmdPart[0].lower() == 'dayofweek' or cmdPart[0].lower() == 'dow':
-                        schedulerData.dayOfWeek = cmdPart[1].split('/')
-                        if None in schedulerData.dayOfWeek:
-                            schedulerData.dayOfWeek.remove(None)
+        schedulerData.fromString(inputData)
         if len(schedulerData.dayOfWeek) == 0:
             schedulerData.once = True
         if self.scheduler.addTrigger(schedulerData):
@@ -146,28 +124,13 @@ class SocketInterface(object):
     def __parseChangeScheduleEntryCommand(self, inputData):
         # changeScheduleEntry: entry=1 WZ1=off Hour=8 Minute=15 active=True sensor=sz
         schedulerData = SchedulerData()
+        schedulerData.fromString(inputData)
         cmdList = inputData.split()
         for cmd in cmdList:
-            if not cmd.lower().startswith("changes"):
-                if "=" in cmd:
-                    cmdPart = cmd.split("=")
-                    if cmdPart[0].lower() == 'wz1' or cmdPart[0].lower() == 'wz2' or cmdPart[0].lower() == 'sz1':
-                        schedulerData.lightID = cmdPart[0]
-                        schedulerData.targetState = cmdPart[1]
-                    if cmdPart[0].lower() == 'hour':
-                        schedulerData.hour = cmdPart[1]
-                    if cmdPart[0].lower() == 'minute':
-                        schedulerData.minute = cmdPart[1]
-                    if cmdPart[0].lower() == 'active':
-                        schedulerData.active = cmdPart[1]
-                    if cmdPart[0].lower() == 'sensor':
-                        schedulerData.sensorQuery = cmdPart[1]
-                    if cmdPart[0].lower() == 'dayofweek' or cmdPart[0].lower() == 'dow':
-                        schedulerData.dayOfWeek = cmdPart[1].split('/')
-                        if None in schedulerData.dayOfWeek:
-                            schedulerData.dayOfWeek.remove(None)
-                    if cmdPart[0].lower() == 'entry':
-                        entry = int(cmdPart[1])
+            if "=" in cmd:
+                cmdPart = cmd.split("=")
+                if cmdPart[0].lower() == 'entry':
+                    entry = int(cmdPart[1])
         if len(schedulerData.dayOfWeek) == 0:
             schedulerData.once = True
         if(self.scheduler.replaceTriggerByID(entry, schedulerData)):
@@ -187,12 +150,12 @@ class SocketInterface(object):
                         try:
                             entry = int(cmdPart[1])
                         except:
-                            logging.warn("Could not convert " + cmdPart[1] + " to integer")
+                            logging.warning("Could not convert " + cmdPart[1] + " to integer")
                 else:
                     try:
                         entry = int(cmd)
                     except:
-                        logging.warn("Could not convert " + cmdPart[1] + " to integer")
+                        logging.warning("Could not convert " + cmdPart[1] + " to integer")
         if entry is not None:
             if(self.scheduler.deleteTriggerByID(entry)):
                 return self.__ackString

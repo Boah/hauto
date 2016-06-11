@@ -30,13 +30,14 @@ class lightDef(object):
             return self.__triggerMaxKitchenValue
         if sensorID.lower() == "sz":
             return self.__triggerMaxSZValue
-        return 0
+        return 999
     
     def getIP(self, sensorID):
         if sensorID.lower() == 'kitchen':
             return self.__kitchenIP
         if sensorID.lower() == 'sz':
             return self.__szIP
+        return None
     
     def getKitchenIP(self):
         return self.__kitchenIP

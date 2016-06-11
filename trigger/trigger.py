@@ -49,7 +49,7 @@ class Trigger(object):
         else:
             self.__trigger(light, cmd)
             
-    #Ignores internal Values
+    # Ignores internal Values
     def triggerLightWithSensor(self, light, cmd, sensor):
         if not isinstance(cmd, str):
             cmd = str(cmd)
@@ -62,7 +62,7 @@ class Trigger(object):
         else:
             return self.__trigger(light, cmd)
             
-    #Ignores internal Values
+    # Ignores internal Values
     def triggerLightWithoutSensor(self, light, cmd):
             return self.__trigger(light, cmd)
     
@@ -70,7 +70,7 @@ class Trigger(object):
         if sensorID.lower() == 'kitchen' or sensorID.lower() == 'sz':
             self.__checkSensor = sensorID
         else:
-            logging.warn(str(sensorID) + " is not a valid Sensor ID")
+            logging.warning(str(sensorID) + " is not a valid Sensor ID")
             
     def deactivateSensorThreshold(self):
         self.__checkSensor = None

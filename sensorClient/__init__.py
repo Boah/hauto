@@ -18,7 +18,8 @@ class LightSensorClient(object):
             port = self.PORT
             
         if host == None:
-            host = self.host
+            return 0
+            #host = self.HOST
         
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:

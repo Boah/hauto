@@ -34,15 +34,19 @@ class Scheduler(object):
                 self.activateTrigger(entry)
         
     def triggerJob(self, schedulerData):
-        if schedulerData.sensorQuery:
+        if schedulerData.sensorQuery is not None:
             self.__trigger.triggerLightWithSensor(schedulerData.lightID, schedulerData.targetState, schedulerData.sensorQuery)
         else:
             self.__trigger.triggerLightWithoutSensor(schedulerData.lightID, schedulerData.targetState)
     
     def triggerOneTimeJob(self, schedulerData):
-        self.triggerJob(schedulerData.lightID, schedulerData.targetState, schedulerData.sensorQuery)
-        schedulerData.active = False
-        return schedule.CancelJob
+        logging.info("Triggering One Time Job: " + str(schedulerData.lightID) + " " + str(schedulerData.targetState) + " " + str(schedulerData.sensorQuery))
+        if schedulerData.sensorQuery is not None:
+            self.__trigger.triggerLightWithSensor(schedulerData.lightID, schedulerData.targetState, schedulerData.sensorQuery)
+        else:
+            self.__trigger.triggerLightWithoutSensor(schedulerData.lightID, schedulerData.targetState)
+        self.deactivateTrigger(schedulerData)
+        SchedulerDataContainer().toFile()
     
     def addTrigger(self, schedulerData):
         if SchedulerDataContainer().checkSchedulerData(schedulerData):
@@ -51,7 +55,7 @@ class Scheduler(object):
                 self.__schedulerList.append(schedulerData)
             else:
                 self.__schedulerList.append(schedulerData)
-            SchedulerDataContainer().toFile('/var/log/schedData')
+            SchedulerDataContainer().toFile()
             return True
         else:
             return False
@@ -61,55 +65,55 @@ class Scheduler(object):
         # Day of Month is ignored (Can't do it on the Webinterface anyway)
         retJobList = []
         if schedulerData.once:
-            job = schedule.every().day.at(str(schedulerData.hour)+":"+str(schedulerData.minute)).do(self.triggerOneTimeJob, schedulerData)
+            job = schedule.every().day.at(str(schedulerData.hour) + ":" + str(schedulerData.minute)).do(self.triggerOneTimeJob, schedulerData)
             schedulerData.jobs.append(job)
             schedulerData.active = True
             return retJobList.append(job)
             
         if 'Mo' in schedulerData.dayOfWeek or 'mo' in schedulerData.dayOfWeek:
-            job = schedule.every().monday.at(str(schedulerData.hour)+":"+str(schedulerData.minute)).do(self.triggerJob, schedulerData)
+            job = schedule.every().monday.at(str(schedulerData.hour) + ":" + str(schedulerData.minute)).do(self.triggerJob, schedulerData)
             schedulerData.jobs.append(job)
             retJobList.append(job)
             schedulerData.active = True
             pass
         
         if 'Tu' in schedulerData.dayOfWeek or 'tu' in schedulerData.dayOfWeek:
-            job = schedule.every().tuesday.at(str(schedulerData.hour)+":"+str(schedulerData.minute)).do(self.triggerJob, schedulerData)
+            job = schedule.every().tuesday.at(str(schedulerData.hour) + ":" + str(schedulerData.minute)).do(self.triggerJob, schedulerData)
             schedulerData.jobs.append(job)
             retJobList.append(job)
             schedulerData.active = True
             pass
 
         if 'We' in schedulerData.dayOfWeek or 'we' in schedulerData.dayOfWeek:
-            job = schedule.every().wednesday.at(str(schedulerData.hour)+":"+str(schedulerData.minute)).do(self.triggerJob, schedulerData)
+            job = schedule.every().wednesday.at(str(schedulerData.hour) + ":" + str(schedulerData.minute)).do(self.triggerJob, schedulerData)
             schedulerData.jobs.append(job)
             retJobList.append(job)
             schedulerData.active = True
             pass
         
         if 'Th' in schedulerData.dayOfWeek or 'th' in schedulerData.dayOfWeek:
-            job = schedule.every().thursday.at(str(schedulerData.hour)+":"+str(schedulerData.minute)).do(self.triggerJob, schedulerData)
+            job = schedule.every().thursday.at(str(schedulerData.hour) + ":" + str(schedulerData.minute)).do(self.triggerJob, schedulerData)
             schedulerData.jobs.append(job)
             retJobList.append(job)
             schedulerData.active = True
             pass
         
         if 'Fr' in schedulerData.dayOfWeek or 'fr' in schedulerData.dayOfWeek:
-            job = schedule.every().friday.at(str(schedulerData.hour)+":"+str(schedulerData.minute)).do(self.triggerJob, schedulerData)
+            job = schedule.every().friday.at(str(schedulerData.hour) + ":" + str(schedulerData.minute)).do(self.triggerJob, schedulerData)
             schedulerData.jobs.append(job)
             retJobList.append(job)
             schedulerData.active = True
             pass
         
         if 'Sa' in schedulerData.dayOfWeek or 'sa' in schedulerData.dayOfWeek:
-            job = schedule.every().saturday.at(str(schedulerData.hour)+":"+str(schedulerData.minute)).do(self.triggerJob, schedulerData)
+            job = schedule.every().saturday.at(str(schedulerData.hour) + ":" + str(schedulerData.minute)).do(self.triggerJob, schedulerData)
             schedulerData.jobs.append(job)
             retJobList.append(job)
             schedulerData.active = True
             pass
         
         if 'Su' in schedulerData.dayOfWeek or 'su' in schedulerData.dayOfWeek:
-            job = schedule.every().sunday.at(str(schedulerData.hour)+":"+str(schedulerData.minute)).do(self.triggerJob, schedulerData)
+            job = schedule.every().sunday.at(str(schedulerData.hour) + ":" + str(schedulerData.minute)).do(self.triggerJob, schedulerData)
             schedulerData.jobs.append(job)
             retJobList.append(job)
             schedulerData.active = True
@@ -125,6 +129,7 @@ class Scheduler(object):
     def deactivateTrigger(self, scheduleData):
         for job in scheduleData.jobs:
             schedule.cancel_job(job)
+        del scheduleData.jobs[:]
         scheduleData.active = False
         
     def deleteTriggerByJob(self, job):
@@ -137,23 +142,23 @@ class Scheduler(object):
                     schedulerData.jobs.remove(job)
         
     def deleteTriggerByID(self, index):
-        if index > len(self.__schedulerList)-1:
+        if index > len(self.__schedulerList) - 1:
             return False
         for job in self.__schedulerList[index].jobs:
             schedule.cancel_job(job)
         del self.__schedulerList[index]
-        SchedulerDataContainer().toFile('/var/log/schedData')
+        SchedulerDataContainer().toFile()
         return True
         
     def replaceTriggerByID(self, index, schedulerData):
         if SchedulerDataContainer().checkSchedulerData(schedulerData):
-            if index > len(self.__schedulerList)-1:
+            if index > len(self.__schedulerList) - 1:
                 return False
             for job in self.__schedulerList[index].jobs:
                 schedule.cancel_job(job)
             self.__schedulerList[index] = schedulerData
             self.activateTrigger(schedulerData)
-            SchedulerDataContainer().toFile('/var/log/schedData')
+            SchedulerDataContainer().toFile()
             return True
         else:
             return False

@@ -28,8 +28,9 @@ class Test(unittest.TestCase):
         data.targetState = 'on'
         data.sensorQuery="kitchen"
         data.active = True
-        self.assertEqual(str(data), "SZ1=on DayOfWeek= Hour=9 Minute=30 Once=False sensor=kitchen active=True")
+        self.assertEqual(str(data), "SZ1=on DayOfWeek= Hour=9 Minute=30 Once=True sensor=kitchen active=True")
         
+        data.once = False
         data.dayOfWeek.append('Mo')
         data.dayOfWeek.append('Tu')
         data.dayOfWeek.append('We')
@@ -53,7 +54,7 @@ class Test(unittest.TestCase):
         data.sensorQuery=None
         data.active = True
         container.schedulerDataList.append(data)
-        self.assertEqual(str(container), "SZ1=on DayOfWeek= Hour=9 Minute=30 Once=False sensor=None active=True\n")
+        self.assertEqual(str(container), "SZ1=on DayOfWeek= Hour=9 Minute=30 Once=True sensor=None active=True\n")
         
         data1 = SchedulerData()
         data1.hour=9
@@ -73,7 +74,7 @@ class Test(unittest.TestCase):
         container.schedulerDataList.append(data1)
         
         self.assertEqual(str(container), 
-                         "SZ1=on DayOfWeek= Hour=9 Minute=30 Once=False sensor=None active=True\nSZ1=on DayOfWeek=Mo/Tu/We/Th/Fr/Sa/Su/ Hour=9 Minute=30 Once=False sensor=kitchen active=True\n"
+                         "SZ1=on DayOfWeek= Hour=9 Minute=30 Once=True sensor=None active=True\nSZ1=on DayOfWeek=Mo/Tu/We/Th/Fr/Sa/Su/ Hour=9 Minute=30 Once=False sensor=kitchen active=True\n"
                          )
         
 
