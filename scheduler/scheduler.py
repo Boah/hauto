@@ -157,7 +157,8 @@ class Scheduler(object):
             for job in self.__schedulerList[index].jobs:
                 schedule.cancel_job(job)
             self.__schedulerList[index] = schedulerData
-            self.activateTrigger(schedulerData)
+            if schedulerData.active:
+                self.activateTrigger(schedulerData)
             SchedulerDataContainer().toFile()
             return True
         else:
