@@ -51,6 +51,18 @@ class Scheduler(object):
     def __checkSchedulerData(self, schedulerData):
         if schedulerData is None:
             return False
+        try:
+            h = int(schedulerData.hour)
+            if h > 23 or h < 0:
+                return False
+        except:
+            return False
+        try:
+            m = int(schedulerData.minute)
+            if m > 59 or m < 0:
+                return False
+        except:
+            return False
         if (schedulerData.hour is None or schedulerData.minute is None
             or schedulerData.lightID is None):
             return False
@@ -59,6 +71,7 @@ class Scheduler(object):
         elif schedulerData.once == True:
             logging.warn("Days and once are specified")
         return True
+    
 
     def activateTrigger(self, schedulerData):
         

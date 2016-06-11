@@ -29,7 +29,7 @@ class SocketInterface(object):
         self.schedulerContainer = SchedulerDataContainer()
         self.trigger = Trigger()
         self.scheduler = Scheduler()
-
+    
     def startLightServer(self):
         #create an INET, STREAMing socket
         serversocket = socket.socket(

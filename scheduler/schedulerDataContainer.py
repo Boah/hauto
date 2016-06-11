@@ -20,14 +20,14 @@ class SchedulerData(object):
         
     def __str__(self):
         msg=str(self.lightID)+"=" + str(self.targetState)
-        msg += ", DayOfWeek="
+        msg += " DayOfWeek="
         for day in self.dayOfWeek:
             msg+=str(day)+"/"
-        msg+=", Hour=" + str(self.hour)
-        msg+=", Minute=" + str(self.minute)
-        msg+=", Once=" + str(self.once)
-        msg+=", sensor=" + str(self.sensorQuery)
-        msg+=", active=" + str(self.active)
+        msg+=" Hour=" + str(self.hour)
+        msg+=" Minute=" + str(self.minute)
+        msg+=" Once=" + str(self.once)
+        msg+=" sensor=" + str(self.sensorQuery)
+        msg+=" active=" + str(self.active)
         
         return msg
         
