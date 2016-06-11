@@ -34,6 +34,7 @@ class Trigger(object):
 
     def __trigger(self, light, cmd):
         try:
+            logging.info("Try to set light " + str(light) + " to " + str(cmd))
             logging.info(call([self.__triggerPath, "10101", str(self.__defs.getLightID(light)), str(cmdToInt(cmd))]))
             self.__lightStatusStore.setStatus(light, cmd)
             return True
@@ -50,7 +51,9 @@ class Trigger(object):
             
     #Ignores internal Values
     def triggerLightWithSensor(self, light, cmd, sensor):
-        if cmd == 1 or cmd.lower() == 'on':
+        if not isinstance(cmd, str):
+            cmd = str(cmd)
+        if cmd == '1' or cmd.lower() == 'on':
             sensorValue = self.__sensorClient.getLightValueFromServer(self.__defs.getIP(sensor))
             sensorThreshold = self.__defs.getLightThreshold(sensor)
             logging.info("comparing Sensor Value: " + str(sensorValue) + " with Sensor Threshold: " + str(sensorThreshold))

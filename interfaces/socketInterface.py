@@ -74,6 +74,7 @@ class SocketInterface(object):
             inputData = input_.decode('utf-8')
         else:
             inputData = input_
+        logging.debug("Got: " + inputData)
         if (inputData.lower() == "getstat" or inputData.lower() == "getstatus"):
             outdata = self.statusStore.getStatusAsString()
             return outdata
@@ -81,6 +82,7 @@ class SocketInterface(object):
             outdata = str(self.schedulerContainer)
             return outdata
         if (inputData.lower().startswith("triggerlight")):
+            logging.info("TriggerLight: " + inputData)
             #TriggerLightCommand: triggerLight SZ1=on sensor=kitchen
             lightCmd = self.__parseLightCommand(inputData)
             if lightCmd.sensor:
@@ -95,21 +97,14 @@ class SocketInterface(object):
                     return self.__nackString
             return self.__nackString
         if (inputData.lower().startswith("addse") or inputData.lower().startswith("addscheduleentry")):
+            logging.info("Add: " + inputData)
             return self.__parseAddScheduleEntryCommand(inputData)
         if (inputData.lower().startswith("changese") or inputData.lower().startswith("changescheduleentry")):
+            logging.info("Change: " + inputData)
             return self.__parseChangeScheduleEntryCommand(inputData)
-        if (inputData.lower().startswith("deletese") or inputData.lower().startswith("deletescheduleentry")):
+        if (inputData.lower().startswith("delete") or inputData.lower().startswith("remove")):
+            logging.info("Delete: " + inputData)
             return self.__parseDeleteScheduleEntryCommand(inputData)
-        if (inputData.lower().startswith("remove") or inputData.lower().startswith("delete")):
-            cmd = inputData.split(" ")
-            try:
-                entry = int(cmd[1])
-            except:
-                return self.__nackString
-            if self.scheduler.deleteTriggerByID(entry):
-                return self.__ackString
-            else:
-                return self.__nackString
         if (inputData.lower() == "exit"):
             logging.info("Got Exit Signal via Socket")
             return "exit"
@@ -131,11 +126,16 @@ class SocketInterface(object):
                     if cmdPart[0].lower() == 'minute':
                         schedulerData.minute = cmdPart[1]
                     if cmdPart[0].lower() == 'active':
-                        schedulerData.active = cmdPart[1]
+                        if cmdPart[1].lower() == 'true':
+                            schedulerData.active = True
+                        else:
+                            schedulerData.active = False
                     if cmdPart[0].lower() == 'sensor':
                         schedulerData.sensorQuery = cmdPart[1]
                     if cmdPart[0].lower() == 'dayofweek' or cmdPart[0].lower() == 'dow':
                         schedulerData.dayOfWeek = cmdPart[1].split('/')
+                        if None in schedulerData.dayOfWeek:
+                            schedulerData.dayOfWeek.remove(None)
         if len(schedulerData.dayOfWeek) == 0:
             schedulerData.once = True
         if self.scheduler.addTrigger(schedulerData):
@@ -164,6 +164,8 @@ class SocketInterface(object):
                         schedulerData.sensorQuery = cmdPart[1]
                     if cmdPart[0].lower() == 'dayofweek' or cmdPart[0].lower() == 'dow':
                         schedulerData.dayOfWeek = cmdPart[1].split('/')
+                        if None in schedulerData.dayOfWeek:
+                            schedulerData.dayOfWeek.remove(None)
                     if cmdPart[0].lower() == 'entry':
                         entry = int(cmdPart[1])
         if len(schedulerData.dayOfWeek) == 0:
@@ -175,15 +177,27 @@ class SocketInterface(object):
         
     def __parseDeleteScheduleEntryCommand(self, inputData):
         # deleteScheduleEntry: entry=1
+        entry = None
         cmdList = inputData.split()
         for cmd in cmdList:
-            if not cmd.lower().startswith("changes"):
+            if not cmd.lower().startswith("del"):
                 if "=" in cmd:
                     cmdPart = cmd.split("=")
                     if cmdPart[0].lower() == 'entry':
-                        entry = int(cmdPart[1])
-        if(self.scheduler.deleteTriggerByID(entry)):
-            return self.__ackString
+                        try:
+                            entry = int(cmdPart[1])
+                        except:
+                            logging.warn("Could not convert " + cmdPart[1] + " to integer")
+                else:
+                    try:
+                        entry = int(cmd)
+                    except:
+                        logging.warn("Could not convert " + cmdPart[1] + " to integer")
+        if entry is not None:
+            if(self.scheduler.deleteTriggerByID(entry)):
+                return self.__ackString
+            else:
+                return self.__nackString
         else:
             return self.__nackString
     

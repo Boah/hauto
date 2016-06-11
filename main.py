@@ -10,10 +10,11 @@ from scheduler.scheduler import Scheduler
 from interfaces.socketInterface import SocketInterface
 
 import logging
+from scheduler.schedulerDataContainer import SchedulerDataContainer
 
 if __name__ == '__main__':
-    FORMAT = '%(asctime)s %(module)s:%(funcName)s:%(lineno)s %(message)s'
-    logging.basicConfig(format=FORMAT, level=logging.DEBUG)
+    FORMAT = '%(levelname)s: %(asctime)s %(module)s:%(funcName)s:%(lineno)s %(message)s'
+    logging.basicConfig(format=FORMAT, level=logging.INFO)
     args = parseArgs()
     trigger = Trigger(args.sensor)
 
@@ -23,6 +24,12 @@ if __name__ == '__main__':
         elif (args.off):
             trigger.triggerLight(args.lightID, 0)
     else:
+        # Try to restore scheduler Data from File
+        if SchedulerDataContainer().fromFile("/var/log/schedData"):
+            logging.info("Restored Scheduler Data")
+        else:
+            logging.info("Could not restore scheduler Data")
+        
         scheduler = Scheduler()
         scheduler.run_continuously(30)
         socketInterface = SocketInterface()
