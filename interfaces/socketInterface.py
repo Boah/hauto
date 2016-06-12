@@ -59,7 +59,7 @@ class SocketInterface(object):
         while 1:
             #accept connections from outside
             (clientsocket, address) = serversocket.accept()
-            input_ = clientsocket.recv(1024)
+            input_ = clientsocket.recv(4096)
             output = self.parseInput(input_)
             if output:
                 clientsocket.sendall(output.encode())
@@ -84,6 +84,9 @@ class SocketInterface(object):
         if (inputData.lower().startswith("triggerlight")):
             logging.info("TriggerLight: " + inputData)
             #TriggerLightCommand: triggerLight SZ1=on sensor=kitchen
+            if 'all_off' in inputData or 'All_Off' in inputData:
+                self.trigger.turnOffAll()
+                return self.__ackString
             lightCmd = self.__parseLightCommand(inputData)
             if lightCmd.sensor:
                 if (self.trigger.triggerLightWithSensor(lightCmd.light, lightCmd.cmd, lightCmd.sensor)):

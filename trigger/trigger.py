@@ -49,6 +49,11 @@ class Trigger(object):
         else:
             self.__trigger(light, cmd)
             
+    def turnOffAll(self):
+        self.__trigger("wz1", 'off')
+        self.__trigger("wz2", 'off')
+        self.__trigger("sz1", 'off')
+            
     # Ignores internal Values
     def triggerLightWithSensor(self, light, cmd, sensor):
         if not isinstance(cmd, str):
