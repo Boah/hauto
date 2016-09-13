@@ -16,7 +16,7 @@ class lightDef(object):
         self.__lightMap.append(self.__WZ2)
         self.__lightMap.append(self.__SZ1)
         self.__triggerMaxSZValue = 15
-        self.__triggerMaxKitchenValue = 50
+        self.__triggerMaxKitchenValue = 60
         self.__kitchenIP = "192.168.0.11"
         self.__szIP = "192.168.0.88"
 
